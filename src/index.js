@@ -1,51 +1,68 @@
-module.exports = function check(str, bracketsConfig) {
-  let position  = [0, 0];
-    let res;
-
-    for(let i = 0; i < bracketsConfig.length; i++){
-        let fBracket = bracketsConfig[i][0];
-        let lBracket = bracketsConfig[i][1];
-        if(fBracket === lBracket){
-            res = searchModuleBrackets(str);
-            if(res === false){
-                break;
-            }
+module.exports = function check(str, bracketsConfig){
+    let res = null;
+    let inputStr = str.split('');
+    let i = 0;
+    let bracketsConfigLength = bracketsConfig.length;
+    if(str.length % 2 !== 0){
+        res = false;
+        return false;
+    }
+    while(inputStr.length >= 0){
+        if(res !== null){
+            break;
+        }
+        if(i === bracketsConfigLength){
+            i = 0;
+            checkbrackets(inputStr, bracketsConfig[i]);
+        }else if(checkbrackets(inputStr, bracketsConfig[i])){
+            i++;
+            continue;
         }else{
-            res = bracketsPairs(fBracket, lBracket);
-            if(res === false){
-                break;
-            }
+            break;
         }
 
     }
 
-    function bracketsPairs(firstBracket, lastBracket){
-        let pos = str.lastIndexOf(firstBracket);
-        let pairBracket = str.indexOf(lastBracket, pos+1);
-        let strWithBrackets = str.slice(pos, pairBracket + 1);
-        let bracketsWithModule = /\|/.test(strWithBrackets);
-        if(bracketsWithModule){
-            if(!searchModuleBrackets(strWithBrackets)){
-                return false;
-            }
+    function checkbrackets(checkingStr, arrTemp){
+        let posOpenBr;
+        let posCloseBr;
+        if(arrTemp[0] !== arrTemp[1]){
+            posOpenBr = checkingStr.lastIndexOf(arrTemp[0]);
+            posCloseBr = checkingStr.indexOf(arrTemp[1], posOpenBr + 1);
+        }else{
+            posOpenBr = checkingStr.indexOf(arrTemp[0]);
+            posCloseBr = checkingStr.indexOf(arrTemp[0], posOpenBr + 1);
         }
-        if(pairBracket === -1){
-            return false;
-        }else if((pos <= position[0] && pairBracket <= position[0]) || (pos >= position[1] && pairBracket >= position[1])
-            || (pos < position[0] && pairBracket > position[1])||(pos > position[0] && pairBracket < position[1])){
-            position[0] = pos;
-            position[1]  = pairBracket;
+
+        if(posOpenBr === -1 && posCloseBr === -1){
             return true;
+        }else if((posOpenBr < posCloseBr) && (posOpenBr !== -1 && posCloseBr !== -1)){
+            let tempStr = checkingStr.slice(posOpenBr, posCloseBr + 1);
+            if(tempStr.length === 2){
+                inputStr.splice(posOpenBr, 2);
+                if(inputStr.length === 0){
+                    res = true;
+                    return;
+                }else{
+                    checkbrackets(inputStr, arrTemp);
+                }
+            }else{
+                if(tempStr.length % 2 === 0){
+                    inputStr.splice(posCloseBr, 1);
+                    inputStr.splice(posOpenBr, 1);
+                    return true;
+                }else{
+                    res = false;
+                    return false;
+                }
+            }
         }else{
+            res = false;
             return false;
         }
+        return true;
     }
-    function searchModuleBrackets(string){
-    let a = string.toString().match(/\|/g);
-    if(a === null || a.length % 2 === 0){
-       return true;
-    }
-    return false;
-}
+
     return res;
-}
+
+};
